@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  mysql-service:
+    image: mysql:5.7
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - support-network
+      - external-network
+
+  mysql-adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8017:8080
+    networks:
+      - support-network
+      - external-network
+    depends_on:
+      - mysql-service
+
+  mongo-service:
+    image: mongo:4.4.6
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_USER_NAME: default
+      MONGO_USER_PASSWORD: '@Senha123'
+    networks:
+      - support-network
+      - external-network
+
+  mongo-express:
+    depends_on:
+      - mongo-service
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-service'
+      ME_CONFIG_BASICAUTH_USERNAME: default
+      ME_CONFIG_BASICAUTH_PASSWORD: '@Senha123'
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+    networks:
+      - support-network
+      - external-network
+
+networks:
+  support-network:
+    driver: bridge
+  external-network:
+    external:
+      name: default_services_network
